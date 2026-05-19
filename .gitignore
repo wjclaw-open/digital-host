@@ -6,6 +6,9 @@ __pycache__/
 # User config (contains API keys)
 config.json
 
+# Chat history (user data)
+chat_history.json
+
 # Logs
 *.log
 
@@ -21,3 +24,35 @@ config.json
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Debug / test scripts (development only)
+add_*.py
+add_*.js
+check_*.py
+check_*.js
+dbg_*.js
+debug_*.py
+extract_*.js
+find_*.py
+find_*.js
+fix_*.py
+fix_*.js
+inspect_*.js
+node_parse.js
+raw_test.js
+rebuild_*.py
+remove_*.js
+simplify_*.js
+test_*.py
+test_*.js
+test_*.bat
+verify_*.js
+kill_old.ps1
+mini_server.py
+
+# Backup files
+*_backup*
+*.3dbackup
+index_3d.html
+index_new.html
+备份记录.md
