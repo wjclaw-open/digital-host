@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>数字主持人 · 小薇</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    background: linear-gradient(135deg, #0f0a1a 0%, #1a0a2e 50%, #0a0f2e 100%);
+    color: #e8e8f0;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 20%, rgba(180, 120, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(68, 138, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 100, 180, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  #header {
+    background: rgba(15, 10, 26, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(180, 120, 255, 0.15);
+    border-top: 1px solid rgba(180, 120, 255, 0.05);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .avatar {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #b478ff, #e94560, #ff6b9d);
+    background-size: 200% 200%;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(180, 120, 255, 0.4),
+                0 0 40px rgba(180, 120, 255, 0.2);
+    animation: avatarPulse 3s ease-in-out infinite;
+  }
+  @keyframes avatarPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(180, 120, 255, 0.4), 0 0 40px rgba(180, 120, 255, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(180, 120, 255, 0.6), 0 0 60px rgba(180, 120, 255, 0.3); }
+  }
+  .header-info { flex: 1; display: flex; align-items: center; gap: 10px; }
+  .header-name { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+  .header-subtitle { font-size: 11px; color: rgba(180, 120, 255, 0.7); }
+  .ctrl-btns { display: flex; gap: 6px; }
+  .ctrl-btn {
+    padding: 6px 12px; border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: #aaa; font-size: 11px; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+  }
+  .ctrl-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+  .ctrl-btn.on { background: rgba(74, 222, 128, 0.15); border-color: rgba(74, 222, 128, 0.4); color: #4ade80; }
+  .ctrl-btn.playing { background: rgba(180, 120, 255, 0.15); border-color: rgba(180, 120, 255, 0.4); color: #b478ff; }
+  .ctrl-btn.playing::before {
+    content: ''; position: absolute; left: 6px; top: 50%;
+    transform: translateY(-50%);
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+    animation: playingDot 1.4s ease-in-out infinite;
+  }
+  @keyframes playingDot {
+    0%, 80%, 100% { opacity: 0.3; transform: translateY(-50%) scale(1); }
+    40% { opacity: 1; transform: translateY(-50%) scale(1.2); }
+  }
+  #main { flex: 1; display: flex; overflow: hidden; position: relative; z-index: 1; }
+  #leftPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: rgba(20, 10, 35, 0.4);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(180, 120, 255, 0.08);
+  }
+  #chat {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+  #chat::-webkit-scrollbar { width: 3px; }
+  #chat::-webkit-scrollbar-thumb { background: rgba(180, 120, 255, 0.3); border-radius: 2px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  .msg {
+    max-width: 75%;
+    line-height: 1.5;
+    font-size: 14px;
+    word-break: break-word;
+    padding: 12px 16px;
+    border-radius: 18px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: msgIn 0.3s ease-out forwards;
+  }
+  @keyframes msgIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.ai {
+    align-self: flex-start;
+    background: linear-gradient(135deg, rgba(30, 26, 46, 0.95), rgba(22, 32, 50, 0.95));
+    border: 1px solid rgba(180, 120, 255, 0.2);
+    border-radius: 18px 18px 18px 6px;
+    color: #d0d8e4;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
+                0 0 30px rgba(180, 120, 255, 0.05);
+  }
+  .msg.ai::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #b478ff, #9450e0);
+    border-radius: 18px 0 0 18px;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, rgba(180, 120, 255, 0.95), rgba(148, 80, 224, 0.95));
+    border-radius: 18px 18px 6px 18px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
+                0 0 30px rgba(180, 120, 255, 0.15);
+  }
+  .msg .time {
+    font-size: 10px; opacity: 0.5;
+    margin-top: 6px; display: block;
+    text-align: right;
+    letter-spacing: 0.3px;
+  }
+  .welcome {
+    text-align: center; padding: 60px 20px;
+    color: rgba(180, 120, 255, 0.5); font-size: 14px;
+  }
+  .welcome-icon { font-size: 50px; margin-bottom: 12px; display: block; animation: bounce 2s ease-in-out infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  #ttsNotice {
+    text-align: center;
+    color: #b478ff;
+    font-size: 12px;
+    padding: 8px 16px;
+    background: rgba(180, 120, 255, 0.08);
+    border-top: 1px solid rgba(180, 120, 255, 0.15);
+    backdrop-filter: blur(10px);
+    display: none; flex-shrink: 0;
+  }
+  .tts-bar {
+    height: 3px; background: rgba(180, 120, 255, 0.3);
+    width: 100%; position: relative;
+    overflow: hidden; display: none;
+    border-radius: 3px;
+  }
+  .tts-bar.active { display: block; }
+  .tts-bar::after {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, #b478ff, transparent);
+    animation: tts-wave 1.2s linear infinite;
+  }
+  @keyframes tts-wave {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  #inputBar {
+    background: rgba(15, 10, 26, 0.7);
+    backdrop-filter: blur(20px);
+    padding: 12px 16px 16px;
+    display: flex; gap: 10px;
+    border-top: 1px solid rgba(180, 120, 255, 0.15);
+    flex-shrink: 0;
+  }
+  #chatIn {
+    flex: 1; padding: 12px 16px;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
+    color: #e8e8f0;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+  }
+  #chatIn:focus {
+    border-color: rgba(180, 120, 255, 0.6);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 0 20px rgba(180, 120, 255, 0.1);
+  }
+  #chatIn::placeholder { color: rgba(255,255,255,0.25); }
+  #chatBtn {
+    padding: 12px 24px;
+    border-radius: 24px;
+    border: none;
+    background: linear-gradient(135deg, #b478ff, #9450e0);
+    color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(180, 120, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  #chatBtn::before {
+    content: ''; position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  #chatBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(180, 120, 255, 0.4);
+  }
+  #chatBtn:hover::before { left: 100%; }
+  #chatBtn:active { transform: translateY(0); }
+  #chatBtn:disabled {
+    opacity: 0.5; cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Right panel 3D */
+  #rightPanel {
+    width: 400px;
+    flex-shrink: 0;
+    background: radial-gradient(ellipse at center, rgba(26, 10, 46, 0.8) 0%, rgba(10, 10, 26, 0.9) 100%);
+    position: relative;
+    overflow: hidden;
+    border-left: 1px solid rgba(180, 120, 255, 0.1);
+  }
+  #threeContainer { width: 100%; height: 100%; }
+  #nameTag {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #c8b8ff;
+    font-size: 16px;
+    font-weight: 600;
+    text-shadow: 0 0 20px rgba(180, 120, 255, 0.5),
+                 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 5;
+    text-align: center;
+    pointer-events: none;
+    animation: nameGlow 2s ease-in-out infinite;
+  }
+  @keyframes nameGlow {
+    0%, 100% { text-shadow: 0 0 20px rgba(180, 120, 255, 0.5); }
+    50% { text-shadow: 0 0 30px rgba(180, 120, 255, 0.7), 0 0 40px rgba(180, 120, 255, 0.3); }
+  }
+  #speechTag {
+    font-size: 12px;
+    color: #b478ff;
+    margin-top: 4px;
+    opacity: 0;
+    transition: all 0.3s;
+    text-shadow: 0 0 10px rgba(180, 120, 255, 0.3);
+  }
+  #speechTag.visible { opacity: 1; transform: scale(1.05); }
+
+  @media (max-width: 800px) {
+    #main { flex-direction: column-reverse; }
+    #rightPanel { width: 100%; height: 50vh; min-height: 320px; flex-shrink: 0; border-left: none; border-top: 1px solid rgba(180, 120, 255, 0.1); }
+    #leftPanel { border-right: none; }
+    #header { padding: 10px 14px; }
+    .header-name { font-size: 14px; }
+    .header-subtitle { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="header">
+  <div class="avatar">👩</div>
+  <div class="header-info">
+    <div class="header-name">小薇</div>
+    <div class="header-subtitle">数字主持人</div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn" id="autoplayBtn" onclick="toggleAutoplay()">
+      <span id="autoplayText">🔇</span> 自动播放
+    </button>
+    <button class="ctrl-btn" onclick="openSettings()">⚙ 设置</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="leftPanel">
+    <div class="tts-bar" id="ttsBar"></div>
+    <div id="ttsNotice">🔊 正在为您朗读...</div>
+    <div id="chat">
+      <div class="welcome">
+        <span class="welcome-icon">🌸</span>
+        <div>你好呀！我是小薇</div>
+        <div style="margin-top:8px;color:#666;font-size:12px">和你聊天吧~</div>
+      </div>
+    </div>
+    <div id="inputBar">
+      <input id="chatIn" placeholder="输入消息开始聊天..." onkeydown="if(event.key==='Enter')window.sendChat()">
+      <button id="chatBtn" onclick="window.sendChat()">发送</button>
+    </div>
+  </div>
+  <div id="rightPanel">
+    <div id="threeContainer"></div>
+    <div id="nameTag">🌸 小薇<div id="speechTag">🎤 正在说话...</div></div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const container = document.getElementById('threeContainer');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x080814);
+scene.fog = new THREE.FogExp2(0x080814, 0.08);
+
+const camera = new THREE.PerspectiveCamera(32, container.clientWidth/container.clientHeight, 0.1, 100);
+camera.position.set(0, 1.5, 5.8);
+camera.lookAt(0, 1.4, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+container.appendChild(renderer.domElement);
+
+// Lights
+scene.add(new THREE.AmbientLight(0x404070, 0.6));
+const main = new THREE.DirectionalLight(0xffdded, 2.5);
+main.position.set(2,5,3); main.castShadow = true;
+main.shadow.mapSize.width = 2048;
+main.shadow.mapSize.height = 2048;
+scene.add(main);
+const fill = new THREE.DirectionalLight(0x8888ff, 0.6);
+fill.position.set(-2,1,1); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xb478ff, 1.5);
+rim.position.set(-1,3,-3); scene.add(rim);
+const rim2 = new THREE.DirectionalLight(0x66a8ff, 0.8);
+rim2.position.set(2,2,-2); scene.add(rim2);
+scene.add(new THREE.HemisphereLight(0xb478ff, 0x080814, 0.4));
+scene.add(new THREE.PointLight(0xff66b4, 0.5, 10));
+scene.add(new THREE.PointLight(0x8866ff, 0.3, 8));
+
+const g = new THREE.Group();
+scene.add(g);
+
+// Materials
+const skin = new THREE.MeshStandardMaterial({ color: 0xf8e8e0, roughness: 0.5, metalness: 0.1 });
+const skinD = new THREE.MeshStandardMaterial({ color: 0xe8d8c8, roughness: 0.6, metalness: 0.05 });
+const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 });
+const iris = new THREE.MeshStandardMaterial({ color: 0x3a1a0a, roughness: 0.15, emissive: 0x1a0a05, emissiveIntensity: 0.2 });
+const lip = new THREE.MeshStandardMaterial({ color: 0xd85a6a, roughness: 0.4, metalness: 0.1 });
+const hair = new THREE.MeshStandardMaterial({ color: 0x1a0a08, roughness: 1, metalness: 0 });
+const brow = new THREE.MeshStandardMaterial({ color: 0x2a1508, roughness: 0.85 });
+const blushM = new THREE.MeshStandardMaterial({ color: 0xff9aaa, roughness: 0.7, transparent: true, opacity: 0.25 });
+const bodyM = new THREE.MeshStandardMaterial({ color: 0x2a1040, roughness: 0.4, metalness: 0.15 });
+
+// Neck
+g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.34,0.35,20), skin)).position.set(0,0.85,0);
+// Head
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.58,48,48), skin);
+head.position.set(0,1.35,0); head.scale.set(1,1.15,0.90); head.castShadow = true;
+g.add(head);
+// Hair back
+const hb = new THREE.Mesh(new THREE.SphereGeometry(0.62,48,48), hair);
+hb.position.set(0,1.38,-0.18); hb.scale.set(1.04,1.16,0.97); g.add(hb);
+// Fringe
+const f1 = new THREE.Mesh(new THREE.BoxGeometry(0.70,0.14,0.38), hair);
+f1.position.set(0,1.64,0.20); f1.rotation.x = -0.28; g.add(f1);
+const f2 = new THREE.Mesh(new THREE.BoxGeometry(0.45,0.12,0.30), hair);
+f2.position.set(-0.16,1.68,0.24); f2.rotation.x = -0.35; f2.rotation.z = 0.08; g.add(f2);
+const f3 = new THREE.Mesh(new THREE.BoxGeometry(0.45,0.12,0.30), hair);
+f3.position.set(0.16,1.68,0.24); f3.rotation.x = -0.35; f3.rotation.z = -0.08; g.add(f3);
+// Side hair
+const sh = new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16), hair);
+sh.position.set(-0.55,1.55,0.08); sh.scale.set(0.85,1.9,0.65); g.add(sh);
+const sh2 = new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16), hair);
+sh2.position.set(0.55,1.55,0.08); sh2.scale.set(0.85,1.9,0.65); g.add(sh2);
+// Top hair
+const th = new THREE.Mesh(new THREE.BoxGeometry(0.65,0.25,0.40), hair);
+th.position.set(0,1.85,0.08); th.rotation.x = -0.3; th.scale.set(0.95,1,1); g.add(th);
+
+// Eyes
+const el = new THREE.Mesh(new THREE.SphereGeometry(0.13,20,20), white);
+el.position.set(-0.18,1.43,0.50); el.scale.set(1.15,0.75,0.32); g.add(el);
+const er = new THREE.Mesh(new THREE.SphereGeometry(0.13,20,20), white);
+er.position.set(0.18,1.43,0.50); er.scale.set(1.15,0.75,0.32); g.add(er);
+const pl = new THREE.Mesh(new THREE.SphereGeometry(0.06,16,16), iris);
+pl.position.set(-0.14,1.42,0.57); pl.scale.set(0.85,0.65,0.12); g.add(pl);
+const pr = new THREE.Mesh(new THREE.SphereGeometry(0.06,16,16), iris);
+pr.position.set(0.14,1.42,0.57); pr.scale.set(0.85,0.65,0.12); g.add(pr);
+const hl = new THREE.Mesh(new THREE.SphereGeometry(0.02,10,10), new THREE.MeshBasicMaterial({color:0xffffff}));
+hl.position.set(-0.12,1.44,0.61); hl.scale.set(0.6,0.45,0.12); g.add(hl);
+const hr = new THREE.Mesh(new THREE.SphereGeometry(0.02,10,10), new THREE.MeshBasicMaterial({color:0xffffff}));
+hr.position.set(0.12,1.44,0.61); hr.scale.set(0.6,0.45,0.12); g.add(hr);
+
+// Eyelids
+const lidMat = new THREE.MeshStandardMaterial({ color: 0xf0d8c8, roughness: 0.55 });
+const eyl = new THREE.Mesh(new THREE.SphereGeometry(0.14,20,20), lidMat);
+eyl.position.set(-0.18,1.43,0.52); eyl.scale.set(1.15,0.01,0.32); g.add(eyl);
+const eyr = new THREE.Mesh(new THREE.SphereGeometry(0.14,20,20), lidMat);
+eyr.position.set(0.18,1.43,0.52); eyr.scale.set(1.15,0.01,0.32); g.add(eyr);
+
+// Lower lids
+const llm = new THREE.MeshStandardMaterial({ color: 0xe0c8b8, roughness: 0.45 });
+const lll = new THREE.Mesh(new THREE.SphereGeometry(0.12,16,16), llm);
+lll.position.set(-0.18,1.39,0.52); lll.scale.set(1.05,0.045,0.25); g.add(lll);
+const llr = new THREE.Mesh(new THREE.SphereGeometry(0.12,16,16), llm);
+llr.position.set(0.18,1.39,0.52); llr.scale.set(1.05,0.045,0.25); g.add(llr);
+
+// Brows
+const bl = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.03,0.045), brow);
+bl.position.set(-0.18,1.51,0.52); bl.rotation.z = 0.1; g.add(bl);
+const br = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.03,0.045), brow);
+br.position.set(0.18,1.51,0.52); br.rotation.z = -0.1; g.add(br);
+
+// Nose
+const nose = new THREE.Mesh(new THREE.ConeGeometry(0.038,0.075,10), skinD);
+nose.position.set(0,1.30,0.57); nose.rotation.x = -0.18; g.add(nose);
+const nb = new THREE.Mesh(new THREE.BoxGeometry(0.032,0.055,0.045), skinD);
+nb.position.set(0,1.35,0.55); g.add(nb);
+
+// Mouth
+const ul = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.028,0.075), lip);
+ul.position.set(0,1.18,0.54); ul.rotation.x = 0.12; g.add(ul);
+const llip = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.025,0.065), lip);
+llip.position.set(0,1.15,0.54); llip.rotation.x = -0.07; g.add(llip);
+const mi = new THREE.Mesh(new THREE.BoxGeometry(0.11,0.012,0.055), new THREE.MeshStandardMaterial({color:0x3a1515,roughness:0.55}));
+mi.position.set(0,1.16,0.58); g.add(mi);
+const mcl = new THREE.Mesh(new THREE.SphereGeometry(0.018,12,12), lip);
+mcl.position.set(-0.10,1.16,0.54); mcl.scale.set(1,0.55,0.55); g.add(mcl);
+const mcr = new THREE.Mesh(new THREE.SphereGeometry(0.018,12,12), lip);
+mcr.position.set(0.10,1.16,0.54); mcr.scale.set(1,0.55,0.55); g.add(mcr);
+
+// Blush
+const bsl = new THREE.Mesh(new THREE.SphereGeometry(0.07,16,16), blushM);
+bsl.position.set(-0.30,1.18,0.43); bsl.scale.set(1.3,0.9,0.22); g.add(bsl);
+const bsr = new THREE.Mesh(new THREE.SphereGeometry(0.07,16,16), blushM);
+bsr.position.set(0.30,1.18,0.43); bsr.scale.set(1.3,0.9,0.22); g.add(bsr);
+
+// Body
+g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.58,0.75,20), bodyM)).position.set(0,0.38,0);
+const col = new THREE.Mesh(new THREE.TorusGeometry(0.24,0.020,12,20), new THREE.MeshStandardMaterial({color:0xb478ff,roughness:0.35,metalness:0.55}));
+col.position.set(0,0.80,0.05); col.rotation.x = -0.3; g.add(col);
+const sm = new THREE.Mesh(new THREE.SphereGeometry(0.24,16,16), bodyM);
+sm.position.set(-0.38,0.12,0); sm.scale.set(0.85,0.55,0.65); g.add(sm);
+const sm2 = new THREE.Mesh(new THREE.SphereGeometry(0.24,16,16), bodyM);
+sm2.position.set(0.38,0.12,0); sm2.scale.set(0.85,0.55,0.65); g.add(sm2);
+
+// Glow ring
+const glow = new THREE.Mesh(new THREE.RingGeometry(0.32,0.75,40), new THREE.MeshBasicMaterial({color:0xb478ff,transparent:true,opacity:0.08,side:THREE.DoubleSide}));
+glow.position.set(0,0.02,0); glow.rotation.x = -Math.PI/2; g.add(glow);
+
+// Particles
+const pcount = 200;
+const pg = new THREE.BufferGeometry();
+const pos = new Float32Array(pcount*3);
+const sizes = new Float32Array(pcount);
+for(let i=0;i<pcount;i++) {
+  pos[i*3] = (Math.random()-0.5)*10;
+  pos[i*3+1] = (Math.random()-0.5)*8 + 2;
+  pos[i*3+2] = (Math.random()-0.5)*10;
+  sizes[i] = Math.random() * 0.02 + 0.008;
+}
+pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+pg.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+const pts = new THREE.Points(pg, new THREE.PointsMaterial({color:0xb478ff,size:0.015,transparent:true,opacity:0.4,blending:THREE.AdditiveBlending}));
+g.add(pts);
+
+// Floating animation vars
+let floating = true;
+let floatOffset = 0;
+let speaking = false;
+let bt = 0, bstate = 0;
+let t = 0;
+let rotationSpeed = 0;
+
+window.setSpeaking = function(on) {
+  speaking = on;
+  const tag = document.getElementById('speechTag');
+  if(on) tag.classList.add('visible'); else tag.classList.remove('visible');
+};
+
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.016;
+
+  // Floating animation
+  if(floating) {
+    floatOffset = Math.sin(t*0.8) * 0.08;
+    g.position.y = floatOffset;
+    rotationSpeed = Math.sin(t*0.4) * 0.02;
+  } else {
+    g.rotation.y += rotationSpeed;
+  }
+
+  // Character rotation
+  g.rotation.y = rotationSpeed;
+
+  if(speaking) {
+    // More expressive mouth animation
+    const mo = 0.5 + Math.sin(t*7.5) * 0.65;
+    llip.position.y = 1.15 - mo*0.025;
+    ul.position.y = 1.18 + mo*0.014;
+    mi.scale.y = 0.5 + mo*2.8;
+    mi.position.y = 1.16 - mo*0.01;
+    g.rotation.y += Math.sin(t*5) * 0.008;
+  } else {
+    llip.position.y = 1.15;
+    ul.position.y = 1.18;
+    mi.scale.y = 0.5;
+    mi.position.y = 1.16;
+    rotationSpeed *= 0.92;
+  }
+
+  // Blink animation
+  bt += 0.016;
+  if(bt > 4+Math.random()*2) { bstate = -1; bt = 0; }
+  if(bstate === -1) {
+    eyl.scale.y = Math.min(1, eyl.scale.y+0.07);
+    eyr.scale.y = Math.min(1, eyr.scale.y+0.07);
+    if(eyl.scale.y >= 1) bstate = 1;
+  } else if(bstate === 1) {
+    if(bt > 0.09) bstate = 0;
+  } else {
+    eyl.scale.y = Math.max(0.01, eyl.scale.y-0.045);
+    eyr.scale.y = Math.max(0.01, eyr.scale.y-0.045);
+  }
+
+  // Particles animation
+  pts.rotation.y += 0.0008;
+  pts.position.y = floatOffset + Math.sin(t*1.5) * 0.2;
+  pts.material.opacity = 0.25 + Math.sin(t*1.8) * 0.15;
+
+  // Glow pulsing
+  glow.material.opacity = 0.06 + Math.sin(t*1.4) * 0.04;
+
+  renderer.render(scene, camera);
+}
+animate();
+
+function resize() {
+  const w=container.clientWidth, h=container.clientHeight;
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+}
+window.addEventListener('resize', resize);
+setTimeout(resize, 100);
+</script>
+
+<script>
+var SESSION_ID='main', currentAudioId=null, autoplayEnabled=false, currentAudio=null, lastPollId=null, lastAddedText=null;
+function fmtTime(){var d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function addMsg(text,type){
+  if(text===lastAddedText)return;
+  lastAddedText=text;
+  var chat=document.getElementById('chat'),w=chat.querySelector('.welcome');
+  if(w)w.remove();
+  var d=document.createElement('div');d.className='msg '+type;
+  d.innerHTML=text+'<span class="time">'+fmtTime()+'</span>';
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+}
+function pollTTS(wantId){
+  if(!wantId)return;
+  fetch('/tts_status?v='+Date.now()).then(function(r){return r.json();}).then(function(data){
+    if(!wantId)return;
+    if(data.ready&&data.id===wantId){
+      document.getElementById('ttsNotice').style.display='none';
+      document.getElementById('ttsBar').classList.remove('active');
+      currentAudioId=wantId;playAudio(wantId);
+    }else setTimeout(function(){pollTTS(wantId);},600);
+  }).catch(function(){if(wantId)setTimeout(function(){pollTTS(wantId);},800);});
+}
+var audioUnlocked = false;
+function unlockAudio() {
+  if(audioUnlocked) return;
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    ctx.resume().then(function(){ audioUnlocked = true; });
+  } catch(e) { audioUnlocked = true; }
+}
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
+document.addEventListener('keydown', unlockAudio);
+
+function playAudio(wantId){
+  fetch('/tts_audio?v='+Date.now()).then(function(r){return r.ok?r.blob():null;}).then(function(blob){
+    if(blob && currentAudioId===wantId){
+      if(currentAudio){currentAudio.pause();currentAudio=null;}
+      if(window.setSpeaking)window.setSpeaking(true);
+      currentAudio=new Audio(URL.createObjectURL(blob));
+      if(autoplayEnabled)currentAudio.play();
+      document.getElementById('autoplayBtn').classList.add('playing');
+      currentAudio.onended=function(){if(window.setSpeaking)window.setSpeaking(false);document.getElementById('autoplayBtn').classList.remove('playing');};
+    }
+  });
+}
+function toggleAutoplay(){
+  autoplayEnabled=!autoplayEnabled;
+  var btn=document.getElementById('autoplayBtn'),text=document.getElementById('autoplayText');
+  if(autoplayEnabled){btn.classList.add('on');text.textContent='🔊';}
+  else{btn.classList.remove('on');text.textContent='🔇';if(currentAudio){currentAudio.pause();currentAudio=null;}}
+}
+function startAutoPoll(){
+  setInterval(function(){
+    fetch('/poll?last_id='+(lastPollId||'')).then(function(r){return r.json();}).then(function(data){
+      if(data.has_new){
+        lastPollId=data.id;var isAI=data.type==='ai';addMsg(data.text,isAI?'ai':'user');
+        if(isAI){
+          document.getElementById('ttsNotice').style.display='block';
+          document.getElementById('ttsBar').classList.add('active');
+          setTimeout(function(){fetch('/tts_status?v='+Date.now()).then(function(r){return r.json();}).then(function(s){if(s.id){currentAudioId=s.id;pollTTS(currentAudioId);}});},1000);
+        }else if(data.tts_id) pollUserTTS(data.tts_id,function(){});
+        fetch('/poll/ack',{method:'POST'});
+      }
+    }).catch(function(){});
+  },2000);
+}
+startAutoPoll();
+function pollUserTTS(ttsId,onDone){
+  fetch('/tts_status?source=user&v='+Date.now()).then(function(r){return r.json();}).then(function(data){
+    if(data.ready&&data.id===ttsId){
+      fetch('/tts_audio?source=user&v='+Date.now()).then(function(r){return r.ok?r.blob():null;}).then(function(blob){
+        if(blob){
+          if(window.setSpeaking)window.setSpeaking(true);
+          var a=new Audio(URL.createObjectURL(blob));
+          if(autoplayEnabled)a.play();
+          a.onended=function(){if(window.setSpeaking)window.setSpeaking(false);onDone();};
+        }else onDone();
+      });
+    }else setTimeout(function(){pollUserTTS(ttsId,onDone);},400);
+  }).catch(function(){onDone();});
+}
+function sendChat(){
+  var input=document.getElementById('chatIn'),btn=document.getElementById('chatBtn'),text=input.value.trim();
+  if(!text)return;
+  input.value='';btn.disabled=true;btn.textContent='思考中...';addMsg(text,'user');
+  try {
+    var silence=new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+    silence.play().catch(function(){});
+    setTimeout(function(){silence.pause();silence=null;},100);
+  }catch(e){}
+  fetch('/tts_generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
+  .then(function(r){return r.json();}).then(function(meta){
+    (function pollLocal(){
+      fetch('/tts_status?source=user&v='+Date.now()).then(function(r){return r.json();}).then(function(data){
+        if(data.ready&&data.id===meta.tts_id){
+          fetch('/tts_audio?source=user&v='+Date.now()).then(function(r){return r.ok?r.blob():null;}).then(function(blob){
+            if(blob){
+              if(window.setSpeaking)window.setSpeaking(true);
+              var ua=new Audio(URL.createObjectURL(blob));
+              if(autoplayEnabled)ua.play();
+              ua.onended=function(){if(window.setSpeaking)window.setSpeaking(false);};
+            }
+            getAI();
+          });
+        }else setTimeout(pollLocal,400);
+      }).catch(function(){getAI();});
+    })();
+  }).catch(function(){getAI();});
+  function getAI(){
+    fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,session_id:SESSION_ID})})
+    .then(function(r){return r.json();}).then(function(data){
+      btn.disabled=false;btn.textContent='发送';
+      if(data.error){addMsg('出错了：'+data.error,'ai');return;}
+      addMsg(data.text,'ai');
+      document.getElementById('ttsNotice').style.display='block';
+      document.getElementById('ttsBar').classList.add('active');
+      fetch('/tts_status?v='+Date.now()).then(function(r){return r.json();}).then(function(s){currentAudioId=s.id;pollTTS(currentAudioId);});
+    }).catch(function(e){btn.disabled=false;btn.textContent='发送';addMsg('网络错误：'+e.message,'ai');});
+  }
+}
+</script>
+
+<!-- Settings Modal -->
+<div id="settingsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;backdrop-filter:blur(4px);" onclick="closeSettings()"></div>
+<div id="settingsModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:101;width:420px;max-width:90vw;background:rgba(25,15,40,0.95);border:1px solid rgba(180,120,255,0.2);border-radius:16px;padding:28px;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+  <div style="font-size:18px;font-weight:600;color:#fff;margin-bottom:20px;">API 设置</div>
+  <div style="margin-bottom:14px;">
+    <label style="display:block;font-size:12px;color:#aaa;margin-bottom:4px;">API 地址 (Base URL)</label>
+    <input id="cfgBaseUrl" type="text" placeholder="https://api.example.com/v1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:14px;outline:none;box-sizing:border-box;">
+  </div>
+  <div style="margin-bottom:14px;">
+    <label style="display:block;font-size:12px;color:#aaa;margin-bottom:4px;">API Key</label>
+    <input id="cfgApiKey" type="password" placeholder="sk-..." style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:14px;outline:none;box-sizing:border-box;">
+  </div>
+  <div style="margin-bottom:20px;">
+    <label style="display:block;font-size:12px;color:#aaa;margin-bottom:4px;">模型名称 (Model)</label>
+    <input id="cfgModel" type="text" placeholder="gpt-4o / deepseek-v3 / qwen3-..." style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:14px;outline:none;box-sizing:border-box;">
+  </div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;">
+    <button onclick="closeSettings()" style="padding:8px 20px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#aaa;font-size:13px;cursor:pointer;">取消</button>
+    <button onclick="saveSettings()" style="padding:8px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#b478ff,#e94560);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">保存</button>
+  </div>
+  <div id="cfgStatus" style="margin-top:12px;font-size:12px;color:#4ade80;display:none;"></div>
+</div>
+
+<script>
+function openSettings(){
+  document.getElementById('settingsOverlay').style.display='block';
+  document.getElementById('settingsModal').style.display='block';
+  fetch('/api/config').then(function(r){return r.json();}).then(function(d){
+    document.getElementById('cfgBaseUrl').value=d.base_url||'';
+    document.getElementById('cfgApiKey').value='';
+    document.getElementById('cfgApiKey').placeholder=d.has_key?(d.api_key_masked||'已设置，留空不修改'):'sk-...';
+    document.getElementById('cfgModel').value=d.model||'';
+  });
+}
+function closeSettings(){
+  document.getElementById('settingsOverlay').style.display='none';
+  document.getElementById('settingsModal').style.display='none';
+  document.getElementById('cfgStatus').style.display='none';
+}
+function saveSettings(){
+  var url=document.getElementById('cfgBaseUrl').value.trim();
+  var key=document.getElementById('cfgApiKey').value;
+  var model=document.getElementById('cfgModel').value.trim();
+  if(!url||!model){showCfgStatus('请填写 API 地址和模型名称','#f44747');return;}
+  var body={base_url:url,model:model};
+  if(key)body.api_key=key;
+  else{
+    showCfgStatus('请填写 API Key','#f44747');return;
+  }
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  .then(function(r){return r.json();}).then(function(d){
+    if(d.ok){showCfgStatus('保存成功！','#4ade80');setTimeout(closeSettings,1200);}
+    else showCfgStatus('保存失败','#f44747');
+  }).catch(function(e){showCfgStatus('网络错误','#f44747');});
+}
+function showCfgStatus(msg,color){
+  var el=document.getElementById('cfgStatus');
+  el.textContent=msg;el.style.color=color;el.style.display='block';
+}
+</script>
+</body>
+</html>

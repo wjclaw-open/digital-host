@@ -1,0 +1,122 @@
+/* ===== 数字主持人动画头像 ===== */
+.shrimp-avatar {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 整体呼吸/待机动画 */
+.shrimp-body {
+  position: relative;
+  animation: idle-bounce 3.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes idle-bounce {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-4px) scale(1.01); }
+}
+
+/* 说话时身体微微上下动 */
+.shrimp-body.speaking {
+  animation: speak-bounce 0.6s ease-in-out infinite;
+}
+@keyframes speak-bounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+/* 触须摆动 */
+.antenna {
+  transform-origin: 50% 100%;
+  animation: antenna-wave 2.5s ease-in-out infinite;
+}
+.antenna.left { animation-delay: -0.3s; }
+.antenna.right { animation-delay: 0s; }
+@keyframes antenna-wave {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* 触须说话时摆快点 */
+.shrimp-body.speaking .antenna {
+  animation-duration: 1.2s;
+}
+.shrimp-body.speaking .antenna.left {
+  animation-delay: -0.15s;
+}
+
+/* 腮呼吸 */
+.gill {
+  animation: gill-breathe 2s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes gill-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.75; }
+}
+
+/* 眼睛眨眼 */
+.eye-lid {
+  animation: blink 4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.05); }
+}
+
+/* 大钳子轻微挥动 */
+.claw {
+  transform-origin: 100% 50%;
+  animation: claw-move 3s ease-in-out infinite;
+}
+.claw.left { animation-delay: -1s; }
+@keyframes claw-move {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-4deg); }
+}
+
+/* 说话时钳子挥更明显 */
+.shrimp-body.speaking .claw {
+  animation-duration: 1.5s;
+}
+.shrimp-body.speaking .claw.left {
+  animation: claw-move-left 1s ease-in-out infinite;
+}
+.shrimp-body.speaking .claw.right {
+  animation: claw-move-right 1s ease-in-out infinite;
+  animation-delay: -0.5s;
+}
+@keyframes claw-move-left {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-8deg); }
+}
+@keyframes claw-move-right {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(8deg); }
+}
+
+/* ===== 嘴巴动画 ===== */
+/* 闭嘴状态 */
+.mouth { transition: opacity 0.05s; }
+/* 说话时嘴巴开合 - 通过JS控制class切换 */
+.mouth-sp { display: none; }
+
+.shrimp-body.speaking .mouth { display: none; }
+.shrimp-body.speaking .mouth-sp { display: block; }
+
+/* 小嘴开合动画 */
+.mouth-open  { animation: mouth-move 0.2s ease-in-out infinite alternate; }
+.mouth-open2 { animation: mouth-move 0.28s ease-in-out infinite alternate; }
+@keyframes mouth-move {
+  0%   { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
+}
+
+/* 嘴巴组 - JS控制显示哪一帧 */
+.mouth-frame { display: none; }
+.mouth-frame.active { display: block; }

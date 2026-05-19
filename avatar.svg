@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- 身体主体渐变 -->
+    <radialGradient id="bodyFill" cx="38%" cy="28%">
+      <stop offset="0%" stop-color="#FF6B5A"/>
+      <stop offset="55%" stop-color="#E74C3C"/>
+      <stop offset="100%" stop-color="#A52A20"/>
+    </radialGradient>
+    <!-- 头部渐变 -->
+    <radialGradient id="headFill" cx="40%" cy="25%">
+      <stop offset="0%" stop-color="#FF8066"/>
+      <stop offset="100%" stop-color="#C03028"/>
+    </radialGradient>
+    <!-- 尾巴渐变 -->
+    <linearGradient id="tailFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E05040"/>
+      <stop offset="100%" stop-color="#A02018"/>
+    </linearGradient>
+    <!-- 爪子渐变 -->
+    <linearGradient id="clawFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF5848"/>
+      <stop offset="100%" stop-color="#B02820"/>
+    </linearGradient>
+    <!-- 高光 -->
+    <radialGradient id="eyeShine" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#CCCCCC"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ===== 尾巴段 ===== -->
+  <!-- 左尾叶 -->
+  <ellipse cx="190" cy="400" rx="42" ry="56" fill="url(#tailFill)" transform="rotate(-14 190 400)"/>
+  <ellipse cx="185" cy="406" rx="22" ry="30" fill="#FF6B5A" opacity="0.45" transform="rotate(-14 185 406)"/>
+  <!-- 中尾叶 -->
+  <ellipse cx="256" cy="408" rx="38" ry="60" fill="url(#tailFill)"/>
+  <ellipse cx="256" cy="410" rx="20" ry="32" fill="#FF6B5A" opacity="0.40"/>
+  <!-- 右尾叶 -->
+  <ellipse cx="322" cy="400" rx="42" ry="56" fill="url(#tailFill)" transform="rotate(14 322 400)"/>
+  <ellipse cx="327" cy="406" rx="22" ry="30" fill="#FF6B5A" opacity="0.45" transform="rotate(14 327 406)"/>
+
+  <!-- ===== 身体 ===== -->
+  <ellipse cx="256" cy="315" rx="145" ry="105" fill="url(#bodyFill)"/>
+  <!-- 身体横向纹理 -->
+  <path d="M135 295 Q200 282 256 282 Q312 282 377 295" stroke="#FFFFFF" stroke-width="3.5" fill="none" opacity="0.18"/>
+  <path d="M122 320 Q195 308 256 308 Q317 308 390 320" stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="0.13"/>
+  <path d="M125 343 Q195 332 256 332 Q317 332 387 343" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.10"/>
+  <!-- 身体高光 -->
+  <ellipse cx="205" cy="268" rx="65" ry="32" fill="#FFFFFF" opacity="0.14" transform="rotate(-8 205 268)"/>
+
+  <!-- ===== 头部/虾头壳 ===== -->
+  <ellipse cx="256" cy="175" rx="115" ry="88" fill="url(#headFill)"/>
+  <!-- 头壳高光 -->
+  <ellipse cx="198" cy="130" rx="46" ry="22" fill="#FFFFFF" opacity="0.18" transform="rotate(-18 198 130)"/>
+  <ellipse cx="210" cy="118" rx="22" ry="10" fill="#FFFFFF" opacity="0.22" transform="rotate(-18 210 118)"/>
+
+  <!-- ===== 左大钳子 ===== -->
+  <!-- 手臂 -->
+  <path d="M128 245 Q60 205 28 145" stroke="url(#clawFill)" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <!-- 大爪上瓣 -->
+  <path d="M28 145 Q4 115 18 90 Q36 70 58 86 Q44 108 46 140" fill="#E74C3C" stroke="#8B2015" stroke-width="2"/>
+  <!-- 大爪下瓣 -->
+  <path d="M28 145 Q-4 160 8 195 Q22 215 50 194 Q38 170 42 148" fill="#C03028" stroke="#8B2015" stroke-width="2"/>
+  <!-- 关节光泽 -->
+  <circle cx="28" cy="145" r="9" fill="#FF8066" opacity="0.5"/>
+  <!-- 小螯 -->
+  <path d="M42 135 Q22 115 28 95 Q40 80 52 98 Q46 115 50 135" fill="#FF5848" stroke="#8B2015" stroke-width="1.5"/>
+
+  <!-- ===== 右大钳子 ===== -->
+  <!-- 手臂 -->
+  <path d="M384 245 Q452 205 484 145" stroke="url(#clawFill)" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <!-- 大爪上瓣 -->
+  <path d="M484 145 Q508 115 494 90 Q476 70 454 86 Q468 108 466 140" fill="#E74C3C" stroke="#8B2015" stroke-width="2"/>
+  <!-- 大爪下瓣 -->
+  <path d="M484 145 Q516 160 504 195 Q490 215 462 194 Q474 170 470 148" fill="#C03028" stroke="#8B2015" stroke-width="2"/>
+  <!-- 关节光泽 -->
+  <circle cx="484" cy="145" r="9" fill="#FF8066" opacity="0.5"/>
+  <!-- 小螯 -->
+  <path d="M470 135 Q490 115 484 95 Q472 80 460 98 Q466 115 462 135" fill="#FF5848" stroke="#8B2015" stroke-width="1.5"/>
+
+  <!-- ===== 触须 ===== -->
+  <!-- 左触须（主） -->
+  <path d="M205 120 Q155 70 128 30" stroke="#E74C3C" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M205 120 Q165 82 142 48" stroke="#C03028" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- 右触须（主） -->
+  <path d="M307 120 Q357 70 384 30" stroke="#E74C3C" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M307 120 Q347 82 370 48" stroke="#C03028" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+  <!-- ===== 眼睛 ===== -->
+  <!-- 左眼白色眼眶 -->
+  <circle cx="200" cy="168" r="30" fill="#FFFFFF"/>
+  <!-- 左眼黑珠 -->
+  <circle cx="200" cy="168" r="21" fill="#180E20"/>
+  <!-- 左眼高光 -->
+  <circle cx="207" cy="160" r="9" fill="url(#eyeShine)" opacity="0.95"/>
+  <circle cx="193" cy="174" r="4.5" fill="#FFFFFF" opacity="0.55"/>
+  <!-- 右眼白色眼眶 -->
+  <circle cx="312" cy="168" r="30" fill="#FFFFFF"/>
+  <!-- 右眼黑珠 -->
+  <circle cx="312" cy="168" r="21" fill="#180E20"/>
+  <!-- 右眼高光 -->
+  <circle cx="319" cy="160" r="9" fill="url(#eyeShine)" opacity="0.95"/>
+  <circle cx="305" cy="174" r="4.5" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- ===== 可爱的下垂眉毛 ===== -->
+  <path d="M176 134 Q192 123 210 132" stroke="#8B2015" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+  <path d="M302 132 Q320 123 336 134" stroke="#8B2015" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+
+  <!-- ===== 腮（透气） ===== -->
+  <path d="M138 210 Q122 228 128 252 Q140 264 152 248 Q140 228 146 212" fill="#A02018" opacity="0.55"/>
+  <path d="M374 210 Q390 228 384 252 Q372 264 360 248 Q372 228 366 212" fill="#A02018" opacity="0.55"/>
+
+  <!-- ===== 嘴巴 ===== -->
+  <!-- 闭嘴唇线 -->
+  <path d="M232 218 Q256 210 280 218" stroke="#8B2015" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+  <!-- 嘴角小弧 -->
+  <path d="M232 218 Q222 222 228 230" stroke="#8B2015" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M280 218 Q290 222 284 230" stroke="#8B2015" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+
+  <!-- ===== 小脚 ===== -->
+  <line x1="163" y1="402" x2="148" y2="440" stroke="#E74C3C" stroke-width="7" stroke-linecap="round"/>
+  <line x1="197" y1="410" x2="187" y2="448" stroke="#E74C3C" stroke-width="7" stroke-linecap="round"/>
+  <line x1="315" y1="410" x2="325" y2="448" stroke="#E74C3C" stroke-width="7" stroke-linecap="round"/>
+  <line x1="349" y1="402" x2="364" y2="440" stroke="#E74C3C" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- ===== 头顶光泽 ===== -->
+  <ellipse cx="225" cy="108" rx="28" ry="13" fill="#FFFFFF" opacity="0.12" transform="rotate(-22 225 108)"/>
+</svg>
